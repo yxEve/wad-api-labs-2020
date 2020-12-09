@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+/* global process */
 
 export const getMovies = () => {
     return fetch(
