@@ -1,7 +1,13 @@
+import './db';
 import dotenv from 'dotenv';
 import express from 'express';
 import moviesRouter from './api/movies';
 import bodyParser from 'body-parser';
+import {loadUsers} from './seedData';
+
+if (process.env.SEED_DB) {
+  loadUsers();
+}
 
 dotenv.config();
 /* eslint-disable */
