@@ -19,6 +19,9 @@ router.post('/', async (req, res, next) => {
       msg: 'Please pass username and password.',
     });
   }
+  if (!(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$/.test(req.body.password))) {
+    return res.status(401).json({ code: 401, msg: 'Bad password.' });
+  }
   if (req.query.action === 'register') {
     await User.create(req.body).catch(next);
     res.status(201).json({
@@ -59,14 +62,22 @@ router.put('/:id',  (req, res, next) => {
 });
 
 //Add a favourite. No Error Handling Yet. Can add duplicates too!
-router.post('/:userName/favourites', async (req, res) => {
+router.post('/:userName/favourites', async (req, res, next) => {
   const newFavourite = req.body.id;
   const userName = req.params.userName;
-  const movie = await movieModel.findByMovieDBId(newFavourite);
-  const user = await User.findByUserName(userName);
-  await user.favourites.push(movie._id);
-  await user.save(); 
-  res.status(201).json(user); 
+  const movie = await movieModel.findByMovieDBId(newFavourite).catch(next);
+  if (!movie) {
+    return res.status(401).json({ code: 401, msg: 'Invalid id supplied.' });
+  }else{
+    const user = await User.findByUserName(userName).catch(next);
+  if(user.favourites.indexOf(movie._id) === -1){
+    await user.favourites.push(movie._id);
+    await user.save(); 
+    res.status(201).json(user);   
+  }else{
+    return res.status(401).json({ code: 401, msg: 'The movie alreadly exists.' });
+  }
+  }
 });
 
 router.get('/:userName/favourites', (req, res, next) => {
